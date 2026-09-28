@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>黒土一号墳 4択クイズ</title>
+  <style>
+    :root {
+      --bg: #f5f2ea;
+      --card: #ffffff;
+      --text: #222222;
+      --muted: #6b6b6b;
+      --border: #d8d3c7;
+      --accent: #6b563d;
+      --accent-dark: #4f3f2c;
+      --ok: #176b3a;
+      --ok-bg: #e9f6ee;
+      --ng: #a52a2a;
+      --ng-bg: #fdecec;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+        "Yu Gothic", "Meiryo", sans-serif;
+    }
+
+    body {
+      min-height: 100svh;
+      padding:
+        max(18px, env(safe-area-inset-top))
+        max(14px, env(safe-area-inset-right))
+        max(22px, env(safe-area-inset-bottom))
+        max(14px, env(safe-area-inset-left));
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .app {
+      width: min(100%, 680px);
+      margin: 0 auto;
+    }
+
+    .title {
+      margin: 8px 0 4px;
+      font-size: clamp(24px, 7vw, 36px);
+      line-height: 1.25;
+      text-align: center;
+      letter-spacing: .02em;
+    }
+
+    .subtitle {
+      margin: 0 0 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .progress-wrap {
+      margin-bottom: 12px;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 8px;
+      background: #e6e0d3;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 25%;
+      background: var(--accent);
+      transition: width .25s ease;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: clamp(18px, 5vw, 28px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.06);
+    }
+
+    .question-no {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .question {
+      margin: 0 0 20px;
+      font-size: clamp(20px, 5.4vw, 28px);
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .choices {
+      display: grid;
+      gap: 12px;
+    }
+
+    .choice {
+      width: 100%;
+      min-height: 58px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      padding: 14px 16px;
+      text-align: left;
+      font: inherit;
+      font-size: 18px;
+      line-height: 1.35;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .choice:focus-visible {
+      outline: 3px solid rgba(107, 86, 61, .28);
+      outline-offset: 2px;
+    }
+
+    .choice[disabled] {
+      cursor: default;
+      opacity: 1;
+    }
+
+    .choice.correct {
+      border-color: var(--ok);
+      background: var(--ok-bg);
+      font-weight: 700;
+    }
+
+    .choice.wrong {
+      border-color: var(--ng);
+      background: var(--ng-bg);
+    }
+
+    .color-choice {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .swatch {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      border-radius: 50%;
+      border: 1px solid #999;
+      display: inline-block;
+    }
+
+    .swatch.black { background: #111; border-color: #111; }
+    .swatch.white { background: #fff; }
+    .swatch.silver { background: #c0c0c0; }
+    .swatch.red { background: #e2231a; border-color: #b81812; }
+
+    .feedback {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 17px;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .feedback.show.ok {
+      display: block;
+      color: var(--ok);
+      background: var(--ok-bg);
+    }
+
+    .feedback.show.ng {
+      display: block;
+      color: var(--ng);
+      background: var(--ng-bg);
+    }
+
+    .next {
+      display: none;
+      width: 100%;
+      margin-top: 14px;
+      min-height: 54px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .next.show { display: block; }
+
+    .result {
+      text-align: center;
+    }
+
+    .score {
+      margin: 8px 0 16px;
+      font-size: clamp(42px, 12vw, 64px);
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .result p {
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .restart {
+      width: 100%;
+      min-height: 54px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ==============================
+       全問正解画像表示
+       ============================== */
+
+    .answer-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 12px;
+
+      background: rgba(0, 0, 0, 0.90);
+
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+
+      transition:
+        opacity .2s ease,
+        visibility .2s ease;
+    }
+
+    .answer-overlay.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .answer-canvas {
+      display: block;
+      max-width: 96vw;
+      max-height: 94vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+
+      transform: scale(.94);
+      opacity: 0;
+
+      transition:
+        transform .32s ease,
+        opacity .22s ease;
+    }
+
+    .answer-overlay.show .answer-canvas {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <h1 class="title">黒土一号墳 4択クイズ</h1>
+    <p class="subtitle">説明板をよく読んで挑戦しよう！</p>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-text">
+        <span id="progressLabel">1 / 4</span>
+        <span id="scoreLabel">正解 0</span>
+      </div>
+      <div class="progress" aria-hidden="true">
+        <div id="progressBar"></div>
+      </div>
+    </div>
+
+    <section class="card" id="quizCard">
+      <p class="question-no" id="questionNo">第1問</p>
+      <h2 class="question" id="questionText"></h2>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next" id="nextButton" type="button">次の問題へ</button>
+    </section>
+  </main>
+
+
+  <!-- 全問正解時の画像表示 -->
+  <div
+    class="answer-overlay"
+    id="answerOverlay"
+    aria-hidden="true"
+  >
+    <canvas
+      id="answerCanvas"
+      class="answer-canvas"
+      aria-label="全問正解画像"
+    ></canvas>
+  </div>
+
+  <script>
+    "use strict";
+
+    const quiz = [
+      {
+        question: "4つの色の中で、古墳の説明にない色は？",
+        choices: [
+          { label: "黒", value: "black", color: "black" },
+          { label: "白", value: "white", color: "white" },
+          { label: "銀", value: "silver", color: "silver" },
+          { label: "赤", value: "red", color: "red" }
+        ],
+        answer: "red"
+      },
+      {
+        question: "黒土一号墳の石室に向かって立ったとき、あなたはどの方角を向いている？",
+        choices: [
+          { label: "南西", value: "sw" },
+          { label: "北東", value: "ne" },
+          { label: "北西", value: "nw" },
+          { label: "南東", value: "se" }
+        ],
+        answer: "ne"
+      },
+      {
+        question: "発掘調査で見つからなかったものは？",
+        choices: [
+          { label: "須恵器", value: "sue" },
+          { label: "天井石", value: "ceiling" },
+          { label: "耳環", value: "earring" },
+          { label: "凝灰岩", value: "tuff" }
+        ],
+        answer: "ceiling"
+      },
+      {
+        question: "黒土一号墳に葬られた人のイメージに合うのはどれ？",
+        choices: [
+          { label: "土器を作っている", value: "pottery" },
+          { label: "魚をとっている", value: "fishing" },
+          { label: "馬に乗っている", value: "horse" },
+          { label: "田畑を耕している", value: "farming" }
+        ],
+        answer: "horse"
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let answered = false;
+
+    const questionNo = document.getElementById("questionNo");
+    const questionText = document.getElementById("questionText");
+    const choicesEl = document.getElementById("choices");
+    const feedback = document.getElementById("feedback");
+    const nextButton = document.getElementById("nextButton");
+    const progressLabel = document.getElementById("progressLabel");
+    const progressBar = document.getElementById("progressBar");
+    const scoreLabel = document.getElementById("scoreLabel");
+    const quizCard = document.getElementById("quizCard");
+    const progressWrap = document.getElementById("progressWrap");
+
+    const answerOverlay = document.getElementById("answerOverlay");
+    const answerCanvas = document.getElementById("answerCanvas");
+
+
+    function formatCorrectDateTime(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+      const second = String(date.getSeconds()).padStart(2, "0");
+
+      return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+    }
+
+
+    function createRandomSerial() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const bytes = new Uint32Array(12);
+
+      if (window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(bytes);
+      } else {
+        for (let i = 0; i < bytes.length; i++) {
+          bytes[i] = Math.floor(Math.random() * 0xffffffff);
+        }
+      }
+
+      let serial = "";
+
+      for (let i = 0; i < bytes.length; i++) {
+        serial += chars[bytes[i] % chars.length];
+
+        if (i === 3 || i === 7) {
+          serial += "-";
+        }
+      }
+
+      return serial;
+    }
+
+
+    function drawAnswerImageWithSecurityInfo() {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+
+        img.onload = () => {
+          const canvas = answerCanvas;
+          const ctx = canvas.getContext("2d");
+
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+
+          const now = new Date();
+
+          const dateText =
+            "正解日時: " + formatCorrectDateTime(now);
+
+          const serialText =
+            "SERIAL: " + createRandomSerial();
+
+          const noteText =
+            "不正コピー防止のため識別情報を表示しています";
+
+          /*
+            右上端に小さく焼き込む。
+            画像サイズに比例して文字サイズを調整。
+          */
+          const mainFont =
+            Math.max(11, Math.round(canvas.width * 0.0080));
+
+          const noteFont =
+            Math.max(9, Math.round(canvas.width * 0.0065));
+
+          const padX =
+            Math.max(6, Math.round(canvas.width * 0.006));
+
+          const padY =
+            Math.max(4, Math.round(canvas.height * 0.004));
+
+          const lineGap =
+            Math.round(mainFont * 1.15);
+
+          ctx.textAlign = "right";
+          ctx.textBaseline = "top";
+
+          ctx.font = `700 ${mainFont}px sans-serif`;
+
+          const widths = [
+            ctx.measureText(dateText).width,
+            ctx.measureText(serialText).width
+          ];
+
+          ctx.font = `500 ${noteFont}px sans-serif`;
+          widths.push(ctx.measureText(noteText).width);
+
+          const boxWidth =
+            Math.max(...widths) + padX * 2;
+
+          const boxHeight =
+            lineGap * 2 + noteFont * 1.35 + padY * 2;
+
+          ctx.fillStyle = "rgba(0, 0, 0, 0.44)";
+          ctx.fillRect(
+            canvas.width - boxWidth,
+            0,
+            boxWidth,
+            boxHeight
+          );
+
+          ctx.fillStyle = "#ffffff";
+          ctx.shadowColor = "rgba(0,0,0,0.9)";
+          ctx.shadowBlur = Math.max(1, Math.round(mainFont * 0.08));
+
+          const x = canvas.width - padX;
+          const y = padY;
+
+          ctx.font = `700 ${mainFont}px sans-serif`;
+          ctx.fillText(dateText, x, y);
+          ctx.fillText(serialText, x, y + lineGap);
+
+          ctx.font = `500 ${noteFont}px sans-serif`;
+          ctx.fillText(
+            noteText,
+            x,
+            y + lineGap * 2
+          );
+
+          ctx.shadowBlur = 0;
+
+          resolve();
+        };
+
+        img.onerror = () => {
+          reject(
+            new Error("image_answer.jpg を読み込めませんでした。")
+          );
+        };
+
+        img.src = "image_answer.jpg";
+      });
+    }
+
+
+    async function showPerfectAnswer() {
+      try {
+        await drawAnswerImageWithSecurityInfo();
+
+        answerOverlay.classList.add("show");
+        answerOverlay.setAttribute("aria-hidden", "false");
+
+        document.body.style.overflow = "hidden";
+
+      } catch (error) {
+        console.error(error);
+        alert("正解画像を表示できませんでした。image_answer.jpg を確認してください。");
+      }
+    }
+
+
+    function renderQuestion() {
+      answered = false;
+      const q = quiz[current];
+
+      questionNo.textContent = `第${current + 1}問`;
+      questionText.textContent = q.question;
+      progressLabel.textContent = `${current + 1} / ${quiz.length}`;
+      progressBar.style.width = `${((current + 1) / quiz.length) * 100}%`;
+      scoreLabel.textContent = `正解 ${score}`;
+
+      choicesEl.innerHTML = "";
+      feedback.className = "feedback";
+      feedback.textContent = "";
+      nextButton.className = "next";
+      nextButton.textContent = "次の問題へ";
+
+      q.choices.forEach((choice) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "choice";
+        button.dataset.value = choice.value;
+
+        if (choice.color) {
+          const wrap = document.createElement("span");
+          wrap.className = "color-choice";
+
+          const swatch = document.createElement("span");
+          swatch.className = `swatch ${choice.color}`;
+          swatch.setAttribute("aria-hidden", "true");
+
+          const label = document.createElement("span");
+          label.textContent = choice.label;
+
+          wrap.appendChild(swatch);
+          wrap.appendChild(label);
+          button.appendChild(wrap);
+          button.setAttribute("aria-label", choice.label);
+        } else {
+          button.textContent = choice.label;
+        }
+
+        button.addEventListener("click", () => checkAnswer(button, choice.value));
+        choicesEl.appendChild(button);
+      });
+    }
+
+    function checkAnswer(button, value) {
+      if (answered) return;
+      answered = true;
+
+      const q = quiz[current];
+      const buttons = Array.from(choicesEl.querySelectorAll(".choice"));
+      const isCorrect = value === q.answer;
+
+      buttons.forEach((btn) => {
+        btn.disabled = true;
+        if (btn.dataset.value === q.answer) {
+          btn.classList.add("correct");
+        }
+      });
+
+      if (isCorrect) {
+        score++;
+        button.classList.add("correct");
+        feedback.textContent = "正解！";
+        feedback.className = "feedback show ok";
+      } else {
+        button.classList.add("wrong");
+        feedback.textContent = "ざんねん！正解を確認して次へ進もう。";
+        feedback.className = "feedback show ng";
+      }
+
+      scoreLabel.textContent = `正解 ${score}`;
+
+      // 最終問題は、回答した瞬間に自動分岐する
+      if (current === quiz.length - 1) {
+        setTimeout(() => {
+          if (score === quiz.length) {
+            showPerfectAnswer();
+          } else {
+            showResult();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }, 700);
+      } else {
+        nextButton.className = "next show";
+      }
+    }
+
+    function showResult() {
+      progressWrap.style.display = "none";
+      quizCard.innerHTML = `
+        <div class="result">
+          <p class="question-no">クイズ終了</p>
+          <h2 class="question">おつかれさまでした！</h2>
+          <div class="score">${score} / ${quiz.length}</div>
+          <p>${resultMessage(score)}</p>
+          <button class="restart" id="restartButton" type="button">もう一度挑戦する</button>
+        </div>
+      `;
+
+      document.getElementById("restartButton").addEventListener("click", () => {
+        location.reload();
+      });
+    }
+
+    function resultMessage(s) {
+      if (s === 3) return "あと少し！説明板をもう一度見てみよう。";
+      if (s === 2) return "半分正解！まだ見落としているヒントがありそうです。";
+      return "説明板には答えにつながるヒントが隠れています。もう一度挑戦してみよう。";
+    }
+
+    nextButton.addEventListener("click", () => {
+      if (!answered || current >= quiz.length - 1) return;
+      current++;
+  
+    answerOverlay.addEventListener("click", () => {
+      answerOverlay.classList.remove("show");
+      answerOverlay.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    });
+
+    renderQuestion();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    renderQuestion();
+  </script>
+</body>
+</html>
